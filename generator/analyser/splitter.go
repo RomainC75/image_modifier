@@ -11,21 +11,21 @@ func Splitter(done chan int, in <-chan trades.Ticker, cryptos []string) []chan t
 	tickersOut := make([]chan trades.Ticker, len(cryptos))
 
 	for i := range cryptos {
-		tickersOut[i] = make(chan trades.Ticker)
-	}
-
-	go func() {
-		for {
-			select {
-			case <-done:
-				return
-			case message := <-in:
-				if index, err := getIndexInCryptos(cryptos, message.Symbol); err != nil {
-					tickersOut[index] <- message
+		go func() {
+			ch := make(chan trades.Ticker)
+			tickersOut[i] = ch
+			for {
+				select {
+				case <-done:
+					return
+				case message := <-in:
+					if _, err := getIndexInCryptos(cryptos, message.Symbol); err != nil {
+						ch <- message
+					}
 				}
 			}
-		}
-	}()
+		}()
+	}
 
 	return tickersOut
 }
