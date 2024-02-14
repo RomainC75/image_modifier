@@ -32,7 +32,7 @@ func getConnection() (*websocket.Conn, error) {
 	return c, nil
 }
 
-func SubscribeAndListen(topics []string) error {
+func SubscribeAndListen(topics []string) (chan Ticker, error) {
 	conn, err := getConnection()
 	if err != nil {
 		log.Fatal("Failed to connect %s", err.Error())
@@ -64,7 +64,7 @@ func SubscribeAndListen(topics []string) error {
 	b, err := json.Marshal(message)
 	if err != nil {
 		log.Fatal("Failed to JSON Encode trade topics")
-		return err
+		return nil, err
 	}
 
 	err = conn.WriteMessage(websocket.TextMessage, b)
@@ -72,24 +72,32 @@ func SubscribeAndListen(topics []string) error {
 		log.Fatal("Failed to subscribe to topics" + err.Error())
 	}
 
-	defer conn.Close()
 	// defer unsubscirbeOnClose(tradeTopics)
+	dataOut := make(chan Ticker)
 
-	for {
-		_, payload, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Println(err)
-			return err
+	fmt.Println("before")
+	go func() {
+		fmt.Println("inside listener")
+		defer conn.Close()
+		defer close(dataOut)
+		for {
+			_, payload, err := conn.ReadMessage()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			trade := Ticker{}
+			err = json.Unmarshal(payload, &trade)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			log.Println(trade.Symbol, trade.Price, trade.Quantity)
+			dataOut <- trade
 		}
+	}()
 
-		trade := Ticker{}
-
-		err = json.Unmarshal(payload, &trade)
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-		log.Println(trade.Symbol, trade.Price, trade.Quantity)
-	}
-
+	fmt.Println("lkjsdf")
+	return dataOut, nil
 }
