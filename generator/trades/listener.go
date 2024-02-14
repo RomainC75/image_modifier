@@ -92,6 +92,4 @@ func SubscribeAndListen(topics []string) error {
 		log.Println(trade.Symbol, trade.Price, trade.Quantity)
 	}
 
-	return nil
-
 }
