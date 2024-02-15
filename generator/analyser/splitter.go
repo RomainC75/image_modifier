@@ -3,9 +3,11 @@ package analyser
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 
+	"github.com/RomainC75/crypto_socket/generator/tools"
 	"github.com/RomainC75/crypto_socket/generator/trades"
 )
 
@@ -51,13 +53,23 @@ func getIndexInCryptos(cryptos []string, name string) (int, error) {
 
 func SingleCryptoListener(i int, done <-chan int, wg *sync.WaitGroup, ch <-chan trades.Ticker) {
 	go func() {
+		maxLength := 5
+		values := make([]float64, maxLength)
+		sl := values[:0]
 		for {
 			select {
 			case <-done:
 				wg.Done()
 				return
 			case m := <-ch:
-				fmt.Printf("index: %d // crypto : %s // value : %s\n", i, m.Symbol, m.Price)
+				value, err := strconv.ParseFloat(m.Price, 64)
+				if err == nil {
+					tools.InsertValue[float64](&sl, value, maxLength)
+				}
+				if i == 0 {
+					fmt.Println("SLICE : ", sl)
+					fmt.Printf("index: %d // crypto : %s // value : %s\n", i, m.Symbol, m.Price)
+				}
 			}
 		}
 	}()

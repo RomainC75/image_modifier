@@ -10,6 +10,7 @@ import (
 	"github.com/RomainC75/crypto_socket/generator/analyser"
 	"github.com/RomainC75/crypto_socket/generator/trades"
 	"github.com/joho/godotenv"
+	"github.com/rivo/tview"
 )
 
 func main() {
@@ -23,6 +24,11 @@ func main() {
 		cryptos[i] = strings.Trim(strings.Trim(crypto, "\\"), "\"")
 	}
 	fmt.Print(cryptos)
+
+	box := tview.NewBox().SetBorder(true).SetTitle("Hello, world!")
+	if err := tview.NewApplication().SetRoot(box, true).Run(); err != nil {
+		panic(err)
+	}
 
 	done := make(chan int)
 
