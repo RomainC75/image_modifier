@@ -77,7 +77,6 @@ func SubscribeAndListen(topics []string) (chan Ticker, error) {
 
 	fmt.Println("before")
 	go func() {
-		fmt.Println("inside listener")
 		defer conn.Close()
 		defer close(dataOut)
 		for {
@@ -93,7 +92,7 @@ func SubscribeAndListen(topics []string) (chan Ticker, error) {
 				fmt.Println(err)
 				return
 			}
-			log.Println(trade.Symbol, trade.Price, trade.Quantity)
+			// log.Println(trade.Symbol, trade.Price, trade.Quantity)
 			dataOut <- trade
 		}
 	}()
